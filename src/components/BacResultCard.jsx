@@ -1,7 +1,7 @@
 // src/components/BacResultCard.jsx
 import React from 'react';
 
-function BacResultCard({ title, resultData }) {
+function BacResultCard({ resultData, isActive, gender }) {
   // resultData is expected to be an object like:
   // { bacStr, message, timeToSober, className }
   
@@ -10,17 +10,20 @@ function BacResultCard({ title, resultData }) {
     return null; 
   }
 
+  const isFemale = gender === 'female';
+  const genderClass = isFemale ? 'female' : 'male';
+  const genderSuffix = isFemale ? 'Female' : 'Male';
+
   return (
-    <div className={`dual-result ${title.toLowerCase().startsWith('for female') ? 'female' : 'male'}`}>
-      <h4>{title}</h4>
-      <div id={`bacResultDisplay${title.includes('Female') ? 'Female' : 'Male'}`} className={resultData.className}>
+    <div className={`dual-result ${genderClass} ${isActive ? 'active-gender-result' : ''}`}>
+      <div id={`bacResultDisplay${genderSuffix}`} className={resultData.className}>
         {resultData.bacStr}
       </div>
-      <div id={`bacMessage${title.includes('Female') ? 'Female' : 'Male'}`} className="bac-message-text">
+      <div id={`bacMessage${genderSuffix}`} className="bac-message-text">
         {resultData.message}
       </div>
       <p className="info-text">
-        Est. time to sober: <span id={`timeToSober${title.includes('Female') ? 'Female' : 'Male'}`}>{resultData.timeToSober}</span>
+        Est. time to sober: <span id={`timeToSober${genderSuffix}`}>{resultData.timeToSober}</span>
       </p>
     </div>
   );

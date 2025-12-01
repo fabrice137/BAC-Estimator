@@ -1,0 +1,14 @@
+services:
+  bac-estimator:
+    build: .
+    container_name: bac-estimator
+    restart: unless-stopped
+    networks:
+      - caddy_network
+    # labels:
+    #   caddy: bac.haguma.com
+    #   caddy.reverse_proxy: "{{upstreams 80}}"
+
+networks:
+  caddy_network:
+    external: true

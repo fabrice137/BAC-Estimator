@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PersonalInfoColumn from './components/PersonalInfoColumn';
 import DrinksInputColumn from './components/DrinksInputColumn';
 import ResultsColumn from './components/ResultsColumn';
@@ -15,13 +15,40 @@ import {
 function App() {
   const [drinks, setDrinks] = useState([]);
   const [weight, setWeight] = useState("70");
+  const [gender, setGender] = useState("male");
   const [time, setTime] = useState("1");
+  const [detailsCollapsed, setDetailsCollapsed] = useState(false);
 
   const [showResults, setShowResults] = useState(false);
   const [bacResults, setBacResults] = useState({
     male: { bacStr: "0.000%", message: "", timeToSober: "N/A", className: "bac-safe" },
     female: { bacStr: "0.000%", message: "", timeToSober: "N/A", className: "bac-safe" },
   });
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const savedWeight = localStorage.getItem('bac_weight');
+    const savedGender = localStorage.getItem('bac_gender');
+    const hasVisited = localStorage.getItem('bac_has_visited');
+
+    if (savedWeight) setWeight(savedWeight);
+    if (savedGender) setGender(savedGender);
+    
+    if (hasVisited) {
+      setDetailsCollapsed(true);
+    } else {
+      localStorage.setItem('bac_has_visited', 'true');
+    }
+  }, []);
+
+  // Save weight and gender to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('bac_weight', weight);
+  }, [weight]);
+
+  useEffect(() => {
+    localStorage.setItem('bac_gender', gender);
+  }, [gender]);
 
   const handleAddPresetDrink = (presetData, quantity) => {
     const totalSize = presetData.size * quantity;
@@ -31,6 +58,7 @@ function App() {
         description: `${quantity} x ${presetData.name} ${presetData.details}`
     }]);
     setShowResults(false);
+    setDetailsCollapsed(true);
   };
 
   const handleAddManualDrink = (drinkDetails) => {
@@ -41,6 +69,7 @@ function App() {
         description: `${drinkDetails.num} x ${drinkDetails.size}ml @ ${drinkDetails.abv}% ABV (Manual)`
     }]);
     setShowResults(false);
+    setDetailsCollapsed(true);
   };
 
   const handleRemoveDrink = (indexToRemove) => {
@@ -119,23 +148,28 @@ function App() {
     <div className="app-container">
       <PersonalInfoColumn
         weight={weight}
+        gender={gender}
         time={time}
+        drinks={drinks}
+        onRemoveDrink={handleRemoveDrink}
+        isCollapsed={detailsCollapsed}
+        onToggleCollapse={() => setDetailsCollapsed(!detailsCollapsed)}
         onWeightChange={handleInputChange(setWeight)}
+        onGenderChange={handleInputChange(setGender)}
         onTimeChange={handleInputChange(setTime)}
         onWeightStep={(change) => handleStepperChange(weight, setWeight, change, 30, 250, 5)}
         onTimeStep={(change) => handleStepperChange(time, setTime, change, 0, 24, 0.5)}
-        presetDrinksData={PRESET_DRINKS_DATA} // Passed to PersonalInfoColumn
-        onAddPreset={handleAddPresetDrink}
       />
       <DrinksInputColumn
-        drinks={drinks}
         onAddManualDrink={handleAddManualDrink}
-        onRemoveDrink={handleRemoveDrink}
+        presetDrinksData={PRESET_DRINKS_DATA}
+        onAddPreset={handleAddPresetDrink}
+        onCalculateBAC={handleCalculateBAC}
       />
       <ResultsColumn
         bacResults={bacResults}
         showResults={showResults}
-        onCalculateBAC={handleCalculateBAC}
+        selectedGender={gender}
       />
     </div>
   );
